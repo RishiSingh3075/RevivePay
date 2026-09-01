@@ -84,8 +84,6 @@ Recovery Report
 * Node.js
 * TypeScript
 * Express
-* Razorpay Test Mode APIs
-* Razorpay Node.js SDK
 * AI/ML components for classification and recovery prediction
 * JSON/JSONL for lightweight audit logging
 
@@ -93,8 +91,62 @@ Recovery Report
 
 🚧 **Under development**
 
-This project is being built as part of the Razorpay AI Buildathon 2026.
 
 ## Disclaimer
 
-This project uses Razorpay **Test Mode** and synthetic/simulated payment data. It is intended for experimentation and demonstration purposes and does not process real customer payments.
+This project uses synthetic/simulated payment data. It is intended for experimentation and demonstration purposes and does not process real customer payments.
+
+
+## ML Baseline
+
+RevivePay uses historical payment data to estimate whether a failed
+payment is likely to be recovered.
+
+### Prediction Target
+
+The model performs binary classification:
+
+- `0` → payment was not recovered
+- `1` → payment was recovered
+
+### Features
+
+The baseline model uses:
+
+- Payment amount
+- Payment method
+- Failure type
+- Hour of day
+- Time since failure
+- Retry count
+- Previous payment count
+- Previous successful payments
+- Previous success rate
+
+### Baseline Model-I
+
+The initial model is a Logistic Regression classifier.
+
+The preprocessing pipeline:
+1. One-hot encodes categorical features such as payment method and failure type.
+2. Passes numerical features to the classifier.
+3. Trains the Logistic Regression model on 80% of the historical data.
+4. Evaluates it on the remaining 20%.
+
+### Baseline Results
+
+| Metric | Result |
+|---|---:|
+| Test samples | 2,000 |
+| Accuracy | 71.05% |
+| Precision — Recovery | 64% |
+| Recall — Recovery | 44% |
+| F1 — Recovery | 52% |
+
+This model is intentionally treated as a baseline rather than a
+production-ready model. Future iterations may evaluate additional
+models, feature engineering, threshold tuning, and class-imbalance
+handling.
+
+The training experiment is available in
+`notebooks/revivepay_ml_baseline.ipynb`.
