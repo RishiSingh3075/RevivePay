@@ -150,3 +150,36 @@ handling.
 
 The training experiment is available in
 `notebooks/revivepay_ml_baseline.ipynb`.
+
+## Why Machine Learning?
+
+A fixed rule-based system can handle obvious payment failures, but
+historical payment behavior can provide additional signals when
+deciding whether a failed payment is worth attempting to recover.
+
+RevivePay therefore uses an ML classifier as a prediction layer,
+while keeping the final recovery decision bounded by explicit
+business and safety rules.
+
+The ML model does not directly control payment execution.
+
+## Decision Engine
+
+RevivePay uses a rule-based decision engine after estimating the recovery probability of a failed payment.
+
+The engine evaluates:
+
+- Whether the payment is already recovered
+- Maximum retry limit
+- Age of the failed payment
+- Recovery probability threshold
+- Failure type
+
+Based on these conditions, it selects one of four actions:
+
+- `RETRY_NOW`
+- `RETRY_LATER`
+- `ESCALATE`
+- `STOP`
+
+The decision engine also acts as a safety layer, preventing unnecessary or repeated payment attempts.
