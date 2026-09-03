@@ -14,10 +14,18 @@ export interface Payment {
   paymentId: string;
   customerId: string;
   amountInr: number;
+
+  paymentMethod?: string;
   failureType: FailureType;
+
+  hourOfDay?: number;
   minutesSinceFailure: number;
   retryCount: number;
+
+  previousPayments?: number;
+  previousSuccesses?: number;
   previousSuccessRate: number;
+
   recoveryProbability?: number;
   recovered?: boolean;
 }
