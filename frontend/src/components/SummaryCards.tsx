@@ -18,7 +18,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
           RECOVERY RATE
         </div>
         <div className="font-mono text-3xl font-semibold text-zinc-50 tracking-tight mt-1.5">
-          {recoveryRate !== null ? `${recoveryRate}%` : <span className="text-zinc-600">—</span>}
+          {recoveryRate !== null ? `${recoveryRate.toFixed(1)}%` : <span className="text-zinc-600">—</span>}
         </div>
       </div>
       <div className="bg-[#111113] border border-zinc-800 rounded-md p-5">
