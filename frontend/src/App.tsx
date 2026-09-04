@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Payment, RecoveryResult, LogEvent, AuditEntry, RecoveryResponse } from './types';
-import { fetchPayments, runRecovery } from './lib/api';
+import { fetchPayments, runRecovery, fetchAuditLog } from './lib/api';
 
 import { Header } from './components/Header';
 import { SummaryCards } from './components/SummaryCards';
@@ -14,7 +14,7 @@ import { AuditSection } from './components/AuditSection';
 export default function App() {
   // ── Payment data ──────────────────────────────────────────
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // ── Recovery state ────────────────────────────────────────
@@ -26,7 +26,7 @@ export default function App() {
   const [logEvents, setLogEvents] = useState<LogEvent[]>([]);
 
   // ── Audit ─────────────────────────────────────────────────
-  const [auditEntries, _setAuditEntries] = useState<AuditEntry[]>([]);
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
 
   const [expandedPaymentId, setExpandedPaymentId] = useState<string | null>(null);
 
@@ -36,6 +36,13 @@ export default function App() {
         setLoading(true);
         const data = await fetchPayments();
         setPayments(data);
+        
+        try {
+          const auditData = await fetchAuditLog();
+          setAuditEntries(auditData);
+        } catch (e) {
+          console.error("Failed to load audit entries", e);
+        }
       } catch (err: any) {
         setError(err.message || 'Failed to load payments');
       } finally {
@@ -136,6 +143,13 @@ export default function App() {
       // Fetch fresh payments to reflect recovered status
       const data = await fetchPayments();
       setPayments(data);
+      
+      try {
+        const auditData = await fetchAuditLog();
+        setAuditEntries(auditData);
+      } catch (e) {
+        console.error("Failed to load audit entries", e);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to run recovery');
       setRecoveryStatus('idle');

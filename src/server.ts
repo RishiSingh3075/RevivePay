@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "node:fs";
 import { loadPayments } from "./data/loadPayments.js";
 import { getRecoveryProbability } from "./agent/classifier.js";
 import { decide } from "./agent/decisionEngine.js";
@@ -19,6 +20,27 @@ app.get("/api/payments", (req, res) => {
   } catch (error) {
     console.error("Error loading payments:", error);
     res.status(500).json({ error: "Failed to load payments data" });
+  }
+});
+
+// Phase 6: Get audit log
+app.get("/api/audit", (req, res) => {
+  try {
+    const filePath = "data/audit-log.jsonl";
+    if (!fs.existsSync(filePath)) {
+      return res.json([]);
+    }
+    
+    const lines = fs.readFileSync(filePath, "utf-8").split("\n").filter(Boolean);
+    const entries = lines.map(line => JSON.parse(line));
+    
+    // Sort by timestamp descending
+    entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    res.json(entries);
+  } catch (error) {
+    console.error("Error reading audit log:", error);
+    res.status(500).json({ error: "Failed to load audit log" });
   }
 });
 
@@ -76,7 +98,8 @@ app.post("/api/recover", (req, res) => {
         payment,
         recoveryProbability,
         decision,
-        execution
+        execution,
+        timestamp: new Date().toISOString()
       });
     }
 

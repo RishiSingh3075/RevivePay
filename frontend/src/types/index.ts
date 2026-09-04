@@ -63,6 +63,7 @@ export interface RecoveryResult {
   recoveryProbability: number;
   decision: Decision;
   execution: ExecutionResult;
+  timestamp: string;
 }
 
 // Full response from POST /api/recover
