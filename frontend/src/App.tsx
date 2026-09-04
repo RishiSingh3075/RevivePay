@@ -23,7 +23,7 @@ export default function App() {
   const [recoverySummary, setRecoverySummary] = useState<RecoveryResponse['summary'] | null>(null);
 
   // ── Agent log ─────────────────────────────────────────────
-  const [logEvents, _setLogEvents] = useState<LogEvent[]>([]);
+  const [logEvents, setLogEvents] = useState<LogEvent[]>([]);
 
   // ── Audit ─────────────────────────────────────────────────
   const [auditEntries, _setAuditEntries] = useState<AuditEntry[]>([]);
@@ -70,8 +70,60 @@ export default function App() {
   const handleRunRecovery = async () => {
     try {
       setRecoveryStatus('running');
+      setLogEvents([]); // Clear previous logs
       const response = await runRecovery();
       
+      // Animate logs
+      const newEvents: LogEvent[] = [];
+      let eventId = 0;
+
+      for (const r of response.results) {
+        // Classify log
+        newEvents.push({
+          id: String(++eventId),
+          timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
+          paymentId: r.payment.paymentId,
+          action: 'PREDICT',
+          detail: `Recovery probability: ${(r.recoveryProbability * 100).toFixed(1)}%`,
+          color: r.recoveryProbability >= 0.7 ? 'success' : r.recoveryProbability >= 0.4 ? 'amber' : 'red'
+        });
+
+        // Decide log
+        let decisionColor: LogEvent['color'] = 'neutral';
+        if (r.decision.action === 'RETRY_NOW') decisionColor = 'success';
+        else if (r.decision.action === 'RETRY_LATER') decisionColor = 'amber';
+        else if (r.decision.action === 'ESCALATE') decisionColor = 'blue';
+        else if (r.decision.action === 'STOP') decisionColor = 'red';
+
+        newEvents.push({
+          id: String(++eventId),
+          timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
+          paymentId: r.payment.paymentId,
+          action: 'DECIDE',
+          detail: `Action: ${r.decision.action} (${r.decision.reason})`,
+          color: decisionColor
+        });
+
+        // Execute log
+        newEvents.push({
+          id: String(++eventId),
+          timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
+          paymentId: r.payment.paymentId,
+          action: 'EXECUTE',
+          detail: r.execution.message,
+          color: r.execution.success ? 'success' : 'neutral'
+        });
+      }
+
+      // Stream events to UI one by one
+      for (let i = 0; i < newEvents.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 150)); // 150ms delay per log
+        setLogEvents(prev => [...prev, newEvents[i]]);
+      }
+
+      // Wait a moment after finishing logs before showing final tables
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       const newResultsMap = new Map<string, RecoveryResult>();
       response.results.forEach(r => {
         newResultsMap.set(r.payment.paymentId, r);
