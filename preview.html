@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RevivePay — Dashboard Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ========================================
+       DESIGN TOKENS
+       ======================================== */
+    :root {
+      /* Surfaces */
+      --bg-base:       #0a0a0b;
+      --bg-card:       #111113;
+      --bg-elevated:   #18181b;
+      --bg-terminal:   #0c0c0e;
+      --bg-table-row:  #111113;
+      --bg-table-hover:#1a1a1e;
+
+      /* Borders */
+      --border:        #27272a;
+      --border-subtle: #1f1f23;
+
+      /* Text */
+      --text-primary:  #fafafa;
+      --text-secondary:#a1a1aa;
+      --text-muted:    #71717a;
+      --text-dim:      #52525b;
+
+      /* Accents */
+      --emerald:       #34d399;
+      --emerald-dim:   #065f46;
+      --emerald-bg:    rgba(52, 211, 153, 0.08);
+      --amber:         #fbbf24;
+      --amber-dim:     #78350f;
+      --amber-bg:      rgba(251, 191, 36, 0.08);
+      --red:           #f87171;
+      --red-dim:       #7f1d1d;
+      --red-bg:        rgba(248, 113, 113, 0.08);
+      --blue:          #60a5fa;
+      --blue-dim:      #1e3a5f;
+      --blue-bg:       rgba(96, 165, 250, 0.08);
+
+      /* Misc */
+      --radius:        6px;
+      --radius-lg:     8px;
+      --font-sans:     'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono:     'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    }
+
+    /* ========================================
+       RESET & BASE
+       ======================================== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ========================================
+       LAYOUT SHELL
+       ======================================== */
+    .dashboard {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 28px 32px 64px;
+    }
+
+    /* ========================================
+       1. HEADER
+       ======================================== */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 28px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .wordmark {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 1.35rem;
+      letter-spacing: -0.5px;
+      color: var(--text-primary);
+    }
+
+    .wordmark-accent {
+      color: var(--emerald);
+    }
+
+    .subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      letter-spacing: 0.2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .agent-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--emerald);
+      position: relative;
+    }
+
+    .pulse-dot::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: var(--emerald);
+      opacity: 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0; transform: scale(1); }
+      50%      { opacity: 0.35; transform: scale(1.8); }
+    }
+
+    .theme-toggle {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--text-dim);
+      color: var(--text-secondary);
+    }
+
+    .theme-toggle svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ========================================
+       2. SUMMARY CARDS
+       ======================================== */
+    .cards-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .card-value {
+      font-family: var(--font-mono);
+      font-size: 1.9rem;
+      font-weight: 600;
+      letter-spacing: -1px;
+      color: var(--text-primary);
+      line-height: 1.1;
+    }
+
+    .card-sub {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    .card-sub .up   { color: var(--emerald); }
+    .card-sub .down { color: var(--red); }
+
+    /* ========================================
+       3. LIVE AGENT LOG PANEL
+       ======================================== */
+    .log-panel {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .log-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .log-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .log-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+    }
+
+    .log-timestamp {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .log-body {
+      padding: 18px 20px;
+      max-height: 310px;
+      overflow-y: auto;
+    }
+
+    .log-line {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.95;
+      color: var(--text-muted);
+      display: flex;
+      align-items: baseline;
+      gap: 0;
+      white-space: nowrap;
+    }
+
+    .log-line .prompt {
+      color: var(--text-dim);
+      margin-right: 6px;
+      user-select: none;
+    }
+
+    .log-line .ts {
+      color: var(--text-dim);
+      min-width: 72px;
+      margin-right: 10px;
+      font-size: 0.72rem;
+    }
+
+    .log-line .action {
+      min-width: 80px;
+      font-weight: 500;
+    }
+
+    .log-line .id {
+      color: var(--text-secondary);
+      min-width: 110px;
+    }
+
+    .log-line .arrow {
+      color: var(--text-dim);
+      margin: 0 8px;
+    }
+
+    .log-line .result {
+      font-weight: 500;
+    }
+
+    /* Log colors */
+    .c-success .action { color: var(--emerald); }
+    .c-success .result { color: var(--emerald); }
+    .c-amber   .action { color: var(--amber);   }
+    .c-amber   .result { color: var(--amber);   }
+    .c-red     .action { color: var(--red);      }
+    .c-red     .result { color: var(--red);      }
+    .c-blue    .action { color: var(--blue);     }
+    .c-blue    .result { color: var(--blue);     }
+    .c-neutral .action { color: var(--text-secondary); }
+    .c-neutral .result { color: var(--text-muted);     }
+
+    /* Blinking cursor on last line */
+    .log-line:last-child::after {
+      content: '█';
+      color: var(--text-dim);
+      animation: blink 1s step-end infinite;
+      margin-left: 4px;
+      font-size: 0.78rem;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0; }
+    }
+
+    /* Scrollbar */
+    .log-body::-webkit-scrollbar { width: 6px; }
+    .log-body::-webkit-scrollbar-track { background: transparent; }
+    .log-body::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    /* ========================================
+       4. PAYMENT TABLE
+       ======================================== */
+    .table-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .table-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .table-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .table-count {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: left;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.1s;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--bg-table-hover);
+    }
+
+    tbody td {
+      padding: 11px 20px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+
+    .col-id {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .col-amount {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .col-prob {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+
+    .prob-high   { color: var(--emerald); }
+    .prob-mid    { color: var(--amber);   }
+    .prob-low    { color: var(--red);     }
+
+    /* Decision badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .badge-retry-now {
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      border: 1px solid rgba(52, 211, 153, 0.12);
+    }
+    .badge-retry-now .badge-dot { background: var(--emerald); }
+
+    .badge-retry-later {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1px solid rgba(251, 191, 36, 0.12);
+    }
+    .badge-retry-later .badge-dot { background: var(--amber); }
+
+    .badge-escalate {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid rgba(96, 165, 250, 0.12);
+    }
+    .badge-escalate .badge-dot { background: var(--blue); }
+
+    .badge-stop {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid rgba(248, 113, 113, 0.12);
+    }
+    .badge-stop .badge-dot { background: var(--red); }
+
+    /* Status column */
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .status-recovered  { color: var(--emerald); }
+    .status-recovered .status-dot  { background: var(--emerald); }
+    .status-pending    { color: var(--amber);   }
+    .status-pending .status-dot    { background: var(--amber);   }
+    .status-failed     { color: var(--red);     }
+    .status-failed .status-dot     { background: var(--red);     }
+    .status-review     { color: var(--blue);    }
+    .status-review .status-dot     { background: var(--blue);    }
+
+    /* ========================================
+       RESPONSIVE
+       ======================================== */
+    @media (max-width: 768px) {
+      .dashboard { padding: 16px; }
+      .cards-row { grid-template-columns: 1fr; }
+      .card-value { font-size: 1.5rem; }
+      .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .table-panel { overflow-x: auto; }
+      table { min-width: 720px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+
+    <!-- ===================== 1. HEADER ===================== -->
+    <header class="header">
+      <div class="header-left">
+        <div class="wordmark">Revive<span class="wordmark-accent">Pay</span></div>
+        <span class="subtitle">AI Payment Recovery Agent</span>
+      </div>
+      <div class="header-right">
+        <div class="agent-status">
+          <span class="pulse-dot"></span>
+          Agent Online
+        </div>
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================== 2. SUMMARY CARDS ===================== -->
+    <section class="cards-row">
+      <div class="card">
+        <span class="card-label">Recovery Rate</span>
+        <span class="card-value">73.2%</span>
+        <span class="card-sub"><span class="up">↑ 4.1%</span> vs last 7d</span>
+      </div>
+      <div class="card">
+        <span class="card-label">Revenue Recovered</span>
+        <span class="card-value">$142,580</span>
+        <span class="card-sub"><span class="up">↑ $18,240</span> this week</span>
+      </div>
+      <div class="card">
+        <span class="card-label">Pending · At Risk</span>
+        <span class="card-value">23</span>
+        <span class="card-sub"><span class="down">5 high risk</span> · 18 scheduled</span>
+      </div>
+    </section>
+
+    <!-- ===================== 3. LIVE AGENT LOG ===================== -->
+    <section class="log-panel">
+      <div class="log-header">
+        <div class="log-header-left">
+          <span class="log-title">Agent Activity Log</span>
+          <span class="log-badge">● Live</span>
+        </div>
+        <span class="log-timestamp">last update 2s ago</span>
+      </div>
+      <div class="log-body">
+        <div class="log-line c-neutral">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:01</span>
+          <span class="action">CLASSIFY</span>
+          <span class="id">pay_7b3e1a9</span>
+          <span class="arrow">→</span>
+          <span class="result">insufficient_funds</span>
+        </div>
+        <div class="log-line c-success">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:03</span>
+          <span class="action">RETRY</span>
+          <span class="id">pay_4a82f3c</span>
+          <span class="arrow">→</span>
+          <span class="result">SUCCESS · $2,340.00 recovered</span>
+        </div>
+        <div class="log-line c-amber">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:05</span>
+          <span class="action">QUEUE</span>
+          <span class="id">pay_9c41d7e</span>
+          <span class="arrow">→</span>
+          <span class="result">scheduled · retry in 2h</span>
+        </div>
+        <div class="log-line c-neutral">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:07</span>
+          <span class="action">CLASSIFY</span>
+          <span class="id">pay_4a7baf2</span>
+          <span class="arrow">→</span>
+          <span class="result">card_expired</span>
+        </div>
+        <div class="log-line c-red">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:08</span>
+          <span class="action">STOP</span>
+          <span class="id">pay_4a7baf2</span>
+          <span class="arrow">→</span>
+          <span class="result">max retries · flagged</span>
+        </div>
+        <div class="log-line c-success">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:11</span>
+          <span class="action">RETRY</span>
+          <span class="id">pay_e82c14b</span>
+          <span class="arrow">→</span>
+          <span class="result">SUCCESS · $890.00 recovered</span>
+        </div>
+        <div class="log-line c-neutral">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:14</span>
+          <span class="action">CLASSIFY</span>
+          <span class="id">pay_f39d2a1</span>
+          <span class="arrow">→</span>
+          <span class="result">network_error</span>
+        </div>
+        <div class="log-line c-amber">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:15</span>
+          <span class="action">QUEUE</span>
+          <span class="id">pay_f39d2a1</span>
+          <span class="arrow">→</span>
+          <span class="result">scheduled · retry in 30m</span>
+        </div>
+        <div class="log-line c-blue">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:18</span>
+          <span class="action">ESCALATE</span>
+          <span class="id">pay_b27ea5f</span>
+          <span class="arrow">→</span>
+          <span class="result">pending review · high value</span>
+        </div>
+        <div class="log-line c-success">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:21</span>
+          <span class="action">RETRY</span>
+          <span class="id">pay_c54f18d</span>
+          <span class="arrow">→</span>
+          <span class="result">SUCCESS · $4,720.00 recovered</span>
+        </div>
+        <div class="log-line c-neutral">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:24</span>
+          <span class="action">CLASSIFY</span>
+          <span class="id">pay_a91bc3e</span>
+          <span class="arrow">→</span>
+          <span class="result">bank_decline</span>
+        </div>
+        <div class="log-line c-amber">
+          <span class="prompt">&gt;</span>
+          <span class="ts">22:58:26</span>
+          <span class="action">QUEUE</span>
+          <span class="id">pay_a91bc3e</span>
+          <span class="arrow">→</span>
+          <span class="result">scheduled · retry in 6h</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 4. PAYMENT TABLE ===================== -->
+    <section class="table-panel">
+      <div class="table-header-bar">
+        <span class="table-title">Payment Recovery Queue</span>
+        <span class="table-count">47 payments · 23 pending</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Payment ID</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Failure Reason</th>
+            <th>Probability</th>
+            <th>Decision</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-id">pay_4a82f3c</td>
+            <td>Arjun Mehta</td>
+            <td class="col-amount">$2,340.00</td>
+            <td>insufficient_funds</td>
+            <td class="col-prob prob-high">87%</td>
+            <td><span class="badge badge-retry-now"><span class="badge-dot"></span>RETRY_NOW</span></td>
+            <td><span class="status status-recovered"><span class="status-dot"></span>Recovered</span></td>
+          </tr>
+          <tr>
+            <td class="col-id">pay_9c41d7e</td>
+            <td>Priya Sharma</td>
+            <td class="col-amount">$1,180.00</td>
+            <td>network_error</td>
+            <td class="col-prob prob-high">92%</td>
+            <td><span class="badge badge-retry-later"><span class="badge-dot"></span>RETRY_LATER</span></td>
+            <td><span class="status status-pending"><span class="status-dot"></span>Pending</span></td>
+          </tr>
+          <tr>
+            <td class="col-id">pay_b27ea5f</td>
+            <td>Rohan Kapoor</td>
+            <td class="col-amount">$12,400.00</td>
+            <td>bank_decline</td>
+            <td class="col-prob prob-mid">54%</td>
+            <td><span class="badge badge-escalate"><span class="badge-dot"></span>ESCALATE</span></td>
+            <td><span class="status status-review"><span class="status-dot"></span>In Review</span></td>
+          </tr>
+          <tr>
+            <td class="col-id">pay_4a7baf2</td>
+            <td>Neha Gupta</td>
+            <td class="col-amount">$560.00</td>
+            <td>card_expired</td>
+            <td class="col-prob prob-low">12%</td>
+            <td><span class="badge badge-stop"><span class="badge-dot"></span>STOP</span></td>
+            <td><span class="status status-failed"><span class="status-dot"></span>Failed</span></td>
+          </tr>
+          <tr>
+            <td class="col-id">pay_e82c14b</td>
+            <td>Vikram Patel</td>
+            <td class="col-amount">$890.00</td>
+            <td>insufficient_funds</td>
+            <td class="col-prob prob-high">78%</td>
+            <td><span class="badge badge-retry-now"><span class="badge-dot"></span>RETRY_NOW</span></td>
+            <td><span class="status status-recovered"><span class="status-dot"></span>Recovered</span></td>
+          </tr>
+          <tr>
+            <td class="col-id">pay_f39d2a1</td>
+            <td>Ananya Iyer</td>
+            <td class="col-amount">$3,200.00</td>
+            <td>network_error</td>
+            <td class="col-prob prob-high">85%</td>
+            <td><span class="badge badge-retry-later"><span class="badge-dot"></span>RETRY_LATER</span></td>
+            <td><span class="status status-pending"><span class="status-dot"></span>Pending</span></td>
+          </tr>
+          <tr>
+            <td class="col-id">pay_c54f18d</td>
+            <td>Karan Singh</td>
+            <td class="col-amount">$4,720.00</td>
+            <td>processing_error</td>
+            <td class="col-prob prob-mid">63%</td>
+            <td><span class="badge badge-retry-now"><span class="badge-dot"></span>RETRY_NOW</span></td>
+            <td><span class="status status-recovered"><span class="status-dot"></span>Recovered</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+</body>
+</html>
