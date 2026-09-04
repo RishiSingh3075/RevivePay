@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Payment, RecoveryResult, LogEvent, AuditEntry, RecoveryResponse } from './types';
+import { fetchPayments } from './lib/api';
 
 import { Header } from './components/Header';
 import { SummaryCards } from './components/SummaryCards';
@@ -12,9 +13,8 @@ import { AuditSection } from './components/AuditSection';
 
 export default function App() {
   // ── Payment data ──────────────────────────────────────────
-  // Setters prefixed _ are used in later phases (backend integration)
-  const [payments, _setPayments] = useState<Payment[]>([]);
-  const [_loading, _setLoading] = useState(false);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // ── Recovery state ────────────────────────────────────────
@@ -28,8 +28,22 @@ export default function App() {
   // ── Audit ─────────────────────────────────────────────────
   const [auditEntries, _setAuditEntries] = useState<AuditEntry[]>([]);
 
-  // ── Payment detail expand ─────────────────────────────────
   const [expandedPaymentId, setExpandedPaymentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const data = await fetchPayments();
+        setPayments(data);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load payments');
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   // ── Derived values ────────────────────────────────────────
   const failedPayments = payments.filter(p => p.status === 'failed');

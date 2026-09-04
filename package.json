@@ -15,6 +15,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "api": "tsx src/server.ts"
   }
 }
