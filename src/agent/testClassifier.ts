@@ -7,6 +7,7 @@ const payment: Payment = {
   customerId: "CUST_TEST",
 
   amountInr: 1500,
+  status: "failed",
 
   paymentMethod: "card",
   failureType: "network_timeout",

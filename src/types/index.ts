@@ -1,3 +1,7 @@
+export type PaymentStatus =
+  | "successful"
+  | "failed";
+
 export type FailureType =
   | "card_declined"
   | "insufficient_funds"
@@ -11,12 +15,15 @@ export type RecoveryAction =
   | "STOP";
 
 export interface Payment {
+
   paymentId: string;
   customerId: string;
   amountInr: number;
 
+  status: PaymentStatus;
+
   paymentMethod?: string;
-  failureType: FailureType;
+  failureType?: FailureType;
 
   hourOfDay?: number;
   minutesSinceFailure: number;
@@ -28,9 +35,12 @@ export interface Payment {
 
   recoveryProbability?: number;
   recovered?: boolean;
+
 }
 
 export interface Decision {
+
   action: RecoveryAction;
   reason: string;
+
 }

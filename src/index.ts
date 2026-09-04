@@ -3,112 +3,74 @@ import { getRecoveryProbability } from "./agent/classifier.js";
 import { decide } from "./agent/decisionEngine.js";
 import { execute } from "./agent/executor.js";
 import { logAudit } from "./audit/auditLog.js";
-
-const payments: Payment[] = [
-  {
-    paymentId: "PAY_001",
-    customerId: "CUST_001",
-    amountInr: 1500,
-
-    paymentMethod: "card",
-    failureType: "network_timeout",
-
-    hourOfDay: 14,
-    minutesSinceFailure: 30,
-    retryCount: 0,
-
-    previousPayments: 10,
-    previousSuccesses: 8,
-    previousSuccessRate: 0.8,
-
-    recovered: false
-  },
-
-  {
-    paymentId: "PAY_002",
-    customerId: "CUST_002",
-    amountInr: 2400,
-
-    paymentMethod: "card",
-    failureType: "insufficient_funds",
-
-    hourOfDay: 18,
-    minutesSinceFailure: 120,
-    retryCount: 0,
-
-    previousPayments: 6,
-    previousSuccesses: 2,
-    previousSuccessRate: 0.33,
-
-    recovered: false
-  },
-
-  {
-    paymentId: "PAY_003",
-    customerId: "CUST_003",
-    amountInr: 800,
-
-    paymentMethod: "card",
-    failureType: "card_declined",
-
-    hourOfDay: 11,
-    minutesSinceFailure: 60,
-    retryCount: 0,
-
-    previousPayments: 12,
-    previousSuccesses: 10,
-    previousSuccessRate: 0.83,
-
-    recovered: false
-  }
-];
+import { loadPayments } from "./data/loadPayments.js";
 
 console.log("=================================");
 console.log("       REVIVEPAY AGENT");
 console.log("=================================");
 
-for (const payment of payments) {
+async function main() {
 
-  console.log(`\nProcessing ${payment.paymentId}...`);
+const allPayments = loadPayments(
+  "data/revivepay_fresh_payments.csv"
+);
 
-  // 1. Ask ML model for recovery probability
-  const recoveryProbability = getRecoveryProbability(payment);
+const successfulPayments = allPayments.filter(
+  payment => payment.status === "successful"
+);
 
-  const classifiedPayment: Payment = {
-    ...payment,
-    recoveryProbability
-  };
+const failedPayments = allPayments.filter(
+  payment => payment.status === "failed"
+);
 
-  console.log(
-    `Recovery Probability: ${(recoveryProbability * 100).toFixed(2)}%`
-  );
+console.log(`Loaded ${allPayments.length} total payments`);
+console.log(`Successful payments: ${successfulPayments.length}`);
+console.log(`Failed payments: ${failedPayments.length}`);
+  for (const payment of failedPayments) {
 
-  // 2. Make recovery decision
-  const decision = decide(classifiedPayment);
+    console.log(`\nProcessing ${payment.paymentId}...`);
 
-  console.log(`Decision: ${decision.action}`);
-  console.log(`Reason: ${decision.reason}`);
+    // 1. Ask ML model for recovery probability
+    const recoveryProbability = getRecoveryProbability(payment);
 
-  // 3. Execute decision
-  const execution = execute(classifiedPayment, decision);
+    const classifiedPayment: Payment = {
+      ...payment,
+      recoveryProbability
+    };
 
-  console.log(`Execution: ${execution.message}`);
+    console.log(
+      `Recovery Probability: ${(recoveryProbability * 100).toFixed(2)}%`
+    );
 
-  // 4. Record everything
-  logAudit({
-    paymentId: payment.paymentId,
-    customerId: payment.customerId,
-    amountInr: payment.amountInr,
-    failureType: payment.failureType,
-    recoveryProbability,
-    action: decision.action,
-    reason: decision.reason,
-    executionSuccess: execution.success,
-    executionMessage: execution.message,
-    timestamp: new Date().toISOString()
-  });
+    // 2. Make recovery decision
+    const decision = decide(classifiedPayment);
+
+    console.log(`Decision: ${decision.action}`);
+    console.log(`Reason: ${decision.reason}`);
+
+    // 3. Execute decision
+    const execution = execute(classifiedPayment, decision);
+
+    console.log(`Execution: ${execution.message}`);
+
+    // 4. Record everything
+    logAudit({
+      paymentId: payment.paymentId,
+      customerId: payment.customerId,
+      amountInr: payment.amountInr,
+      failureType: payment.failureType ?? "unknown",
+      recoveryProbability,
+      action: decision.action,
+      reason: decision.reason,
+      executionSuccess: execution.success,
+      executionMessage: execution.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  console.log("\n=================================");
+  console.log("       PROCESSING COMPLETE");
+  console.log("=================================");
 }
 
-console.log("\n=================================");
-console.log("       PROCESSING COMPLETE");
-console.log("=================================");
+main();
