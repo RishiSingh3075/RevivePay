@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Payment, RecoveryResult, LogEvent, AuditEntry, RecoveryResponse } from './types';
-import { fetchPayments } from './lib/api';
+import { fetchPayments, runRecovery } from './lib/api';
 
 import { Header } from './components/Header';
 import { SummaryCards } from './components/SummaryCards';
@@ -19,8 +19,8 @@ export default function App() {
 
   // ── Recovery state ────────────────────────────────────────
   const [recoveryStatus, setRecoveryStatus] = useState<'idle' | 'running' | 'complete'>('idle');
-  const [recoveryResults, _setRecoveryResults] = useState<Map<string, RecoveryResult>>(new Map());
-  const [recoverySummary, _setRecoverySummary] = useState<RecoveryResponse['summary'] | null>(null);
+  const [recoveryResults, setRecoveryResults] = useState<Map<string, RecoveryResult>>(new Map());
+  const [recoverySummary, setRecoverySummary] = useState<RecoveryResponse['summary'] | null>(null);
 
   // ── Agent log ─────────────────────────────────────────────
   const [logEvents, _setLogEvents] = useState<LogEvent[]>([]);
@@ -67,9 +67,27 @@ export default function App() {
     setExpandedPaymentId(prev => prev === paymentId ? null : paymentId);
   };
 
-  const handleRunRecovery = () => {
-    // Will be connected to real backend in Phase 4
-    setRecoveryStatus('running');
+  const handleRunRecovery = async () => {
+    try {
+      setRecoveryStatus('running');
+      const response = await runRecovery();
+      
+      const newResultsMap = new Map<string, RecoveryResult>();
+      response.results.forEach(r => {
+        newResultsMap.set(r.payment.paymentId, r);
+      });
+
+      setRecoveryResults(newResultsMap);
+      setRecoverySummary(response.summary);
+      setRecoveryStatus('complete');
+      
+      // Fetch fresh payments to reflect recovered status
+      const data = await fetchPayments();
+      setPayments(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to run recovery');
+      setRecoveryStatus('idle');
+    }
   };
 
   // ── Render ────────────────────────────────────────────────
